@@ -24,6 +24,7 @@ Route::get('/food/{food}', [FoodController::class, 'show']);
 Route::post('/food/{food}', [FoodController::class, 'update']);
 Route::delete('/food/{food}', [FoodController::class, 'destroy']);
 Route::post('/food/addfood', [FoodController::class, 'create']);
+Route::post('/place-order', [OrderController::class, 'store']);
 
 
 // Order routes
