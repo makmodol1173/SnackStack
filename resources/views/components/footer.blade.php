@@ -1,6 +1,6 @@
 <div>
     <div >
-        <div class="footer card-footer text-left bg-gray-300">
+        <div class="footer card-footer text-left" style="background-color: rgb(159, 191, 188) !important;">
             <div class="flex flex-row p-1">
                 <div class="flex-col flex-1 ">
                     <h2 class="text-xl font-bold">SnackStack</h2>
