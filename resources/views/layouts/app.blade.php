@@ -31,7 +31,7 @@
             <div class="container">
                 <a class="navbar-brand font-bold text-xl" href="{{ url('/') }}">
                     <!-- {{ config('app.name', 'Foodie') }} -->
-                    {{ __('SnakeStack') }}
+                    {{ __('𝐒𝐧𝐚𝐜𝐤𝐒𝐭𝐚𝐜𝐤') }}
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>

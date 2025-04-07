@@ -124,6 +124,28 @@ if (!empty(session('cart'))) {
                             <div><label> <input type="radio" name="type" id="pickupType" value="pickup" onclick="showAddressField()" checked> Pickup </label></div>
                             <div><label> <input type="radio" name="type" id="deliveryType" value="delivery" onclick="showAddressField()"> Delivery </label></div>
                         </div>
+                        <div id="admin-map" style="height: 400px; width: 100%;"></div>
+                        <input type="text" id="address" placeholder="Enter delivery address" style="width: 100%; margin-top: 10px;">
+
+                        <script>
+                            function initAdminMap() {
+                                var location = {
+                                    lat: {{ Auth::user()->latitude ?? '23.8103' }},
+                                    lng: {{ Auth::user()->longitude ?? '90.4125' }}
+                                };
+                            
+                                var map = new google.maps.Map(document.getElementById('admin-map'), {
+                                    center: location,
+                                    zoom: 15
+                                });
+                            
+                                var marker = new google.maps.Marker({
+                                    position: location,
+                                    map: map
+                                });
+                            }
+                        </script>
+                        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBiVqW_ne4ZakK9UcS650j2DDQ4kQ87Z8U&callback=initMap&libraries=places" async defer></script>
                     </div>
                     <div class="hidden" id="address_div">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="address">
@@ -292,4 +314,99 @@ if (!empty(session('cart'))) {
         document.getElementById('address').defaultValue = 'abc';
     }
 </script>
+<script>
+    var map, marker, geocoder, autocomplete;
+    
+    function initMap() {
+        // Create a new map centered on a default location (e.g., your business location)
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 37.7749, lng: -122.4194 },  // Set your default coordinates
+            zoom: 13
+        });
+
+        // Create a marker to show the selected location
+        marker = new google.maps.Marker({
+            map: map,
+            draggable: true,
+        });
+
+        // Enable the Google Places Autocomplete API
+        autocomplete = new google.maps.places.Autocomplete(document.getElementById('address'));
+        
+        // Update marker position when user selects an address
+        autocomplete.addListener('place_changed', function() {
+            var place = autocomplete.getPlace();
+            if (place.geometry) {
+                marker.setPosition(place.geometry.location);
+                map.setCenter(place.geometry.location);
+            }
+        });
+
+        // Add click event to set marker position on map click
+        map.addListener('click', function(e) {
+            marker.setPosition(e.latLng);
+            geocodeLatLng(e.latLng);
+        });
+
+        // Create a geocoder for converting lat/lng into a readable address
+        geocoder = new google.maps.Geocoder();
+    }
+
+    // Function to convert Lat/Lng into an address
+    function geocodeLatLng(latLng) {
+        geocoder.geocode({ location: latLng }, function(results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    document.getElementById('address').value = results[0].formatted_address;
+                } else {
+                    window.alert('No address found');
+                }
+            } else {
+                window.alert('Geocoder failed due to: ' + status);
+            }
+        });
+    }
+</script>
+<script>
+    // On form submission, send the address to the server
+    document.getElementById('orderForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        var address = document.getElementById('address').value;
+        var lat = marker.getPosition().lat();
+        var lng = marker.getPosition().lng();
+
+        // Use AJAX to send the data to the server
+        fetch('/place-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'  // Add CSRF token for security
+            },
+            body: JSON.stringify({
+                address: address,
+                latitude: lat,
+                longitude: lng,
+                // Add any other order data here
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            // Handle success (e.g., show success message)
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+</script>
+<script>
+    function showAddressField() {
+        let delivery = document.getElementById('deliveryType').checked;
+        document.getElementById('address_div').classList.toggle('hidden', !delivery);
+    }
+
+    window.onload = showAddressField; // ensure it reflects initial state
+</script>
+
 @endsection
