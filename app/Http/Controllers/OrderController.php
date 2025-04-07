@@ -53,6 +53,20 @@ class OrderController extends Controller
         return redirect('/order');
     }
 
+    public function store(Request $request)
+{
+    $order = new Order();
+    $order->address = $request->address;
+    $order->latitude = $request->latitude;
+    $order->longitude = $request->longitude;
+    // Add any other order details (e.g., user ID, food items, etc.)
+
+    $order->save();
+
+    return view('cart', ['order' => $order]);
+}
+
+
     public function updateCart(Request $req)
     {
         if(Auth::check()){
