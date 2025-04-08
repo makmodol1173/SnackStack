@@ -8,9 +8,7 @@
                     {{ __('Register') }}
                 </div>
                 <div class="card-body">
-
-                    <form method="POST" action="{{ route('register') }}" arialabel="{{ __('Register') }}">
-
+                    <form method="POST" action="{{ route('register') }}" aria-label="{{ __('Register') }}">
                         @csrf
                         <div class="form-group row mb-6">
                             <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Name') }}</label>
@@ -23,6 +21,7 @@
                                 @enderror
                             </div>
                         </div>
+                        
                         <div class="form-group row mb-6">
                             <label for="email" class="col-md-4 col-form-label text-md-right">{{ __('E-Mail Address') }}</label>
                             <div class="col-md-6">
@@ -34,6 +33,7 @@
                                 @enderror
                             </div>
                         </div>
+
                         <div class="form-group row mb-6">
                             <label for="address" class="col-md-4 col-form-label text-md-right">{{ __('Address') }}</label>
                             <div class="col-md-6">
@@ -47,7 +47,7 @@
                         </div>
 
                         <div class="form-group row mb-6">
-                            <label for="password" class="col-md-4 colform-label text-md-right">{{ __('Password') }}</label>
+                            <label for="password" class="col-md-4 col-form-label text-md-right">{{ __('Password') }}</label>
                             <div class="col-md-6">
                                 <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
                                 @error('password')
@@ -57,14 +57,27 @@
                                 @enderror
                             </div>
                         </div>
+
                         <div class="form-group row mb-2">
-                            <label for="password-confirm" class="col-md-4 colform-label text-md-right">{{ __('Confirm Password') }}</label>
+                            <label for="password-confirm" class="col-md-4 col-form-label text-md-right">{{ __('Confirm Password') }}</label>
                             <div class="col-md-6">
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="newpassword">
+                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
                             </div>
                         </div>
+
+                        <!-- Admin Checkbox Section -->
+                        <div class="form-group row mb-6">
+                            <div class="col-md-6 offset-md-4">
+                                <label for="is_admin">
+                                    <input type="checkbox" name="is_admin" id="is_admin" value="1"> 
+                                    {{ __('Register as Admin') }}
+                                </label>
+                            </div>
+                        </div>
+
                         <br>
-                        <div class="form-group row ">
+
+                        <div class="form-group row">
                             <div class="col-md-6 offset-md-4">
                                 <button type="submit" class="btn btn-primary active">
                                     {{ __('Register') }}
