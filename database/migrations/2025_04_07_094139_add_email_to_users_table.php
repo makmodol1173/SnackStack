@@ -6,22 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 class AddEmailToUsersTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->string('email')->unique();
-    });
-}
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('email')->unique()->after('name');  // Add the email column here
+        });
+    }
 
-public function down()
-{
-    Schema::table('users', function (Blueprint $table) {
-        $table->dropColumn('email');
-    });
-}
+    public function down()
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('email');
+        });
+    }
 }
