@@ -51,6 +51,7 @@ class RegisterController extends Controller
             // 'password' => ['required', 'string', 'min:6', 'confirmed'],
             'password' => ['required', 
             'min:6', 
+            'is_admin' => ['nullable'],
             'regex:/^.*(?=.{3,})(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[\d\x])(?=.*[!$#%]).*$/', 
             'confirmed'],
             'address' => ['required', 'string'],
@@ -59,16 +60,17 @@ class RegisterController extends Controller
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-   
     protected function create(array $data)
-    {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'address' => $data['address'],
-        ]);
-    }
+{
+    return User::create([
+        'name' => $data['name'],
+        'email' => $data['email'],
+        'address' => $data['address'],
+        'password' => Hash::make($data['password']),
+        'is_admin' => isset($data['is_admin']) ? true : false, // Check if checkbox is checked
+    ]);
+}
+
     /**
      * @param Request $request
      *
