@@ -56,7 +56,7 @@ if (session('cart') == null) {
 
 <div class="p-10 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-5">
     @foreach($foods as $data)
-    <div class="rounded-md overflow-hidden shadow-md border-1 border-gray-100">
+    <div class="rounded-md overflow-hidden shadow-md border-1 border-gray-100" style="background-color: rgb(207, 202, 206) !important;">
         <a href="../food/{{$data['id']}}">
             <!-- <img class="h-48 w-full object-cover" src="{{$data['picture']}}" alt="Mountain"> -->
             <img class="h-48 w-full object-cover" src="{{ asset('image/' . $data['picture']) }}" alt="Mountain">
