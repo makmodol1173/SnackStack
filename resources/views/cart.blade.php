@@ -124,29 +124,17 @@ if (!empty(session('cart'))) {
                             <div><label> <input type="radio" name="type" id="pickupType" value="pickup" onclick="showAddressField()" checked> Pickup </label></div>
                             <div><label> <input type="radio" name="type" id="deliveryType" value="delivery" onclick="showAddressField()"> Delivery </label></div>
                         </div>
-                        <div id="admin-map" style="height: 400px; width: 100%;"></div>
-                        <input type="text" id="address" placeholder="Enter delivery address" style="width: 100%; margin-top: 10px;">
-
-                        <script>
-                            function initAdminMap() {
-                                var location = {
-                                    lat: {{ Auth::user()->latitude ?? '23.8103' }},
-                                    lng: {{ Auth::user()->longitude ?? '90.4125' }}
-                                };
-                            
-                                var map = new google.maps.Map(document.getElementById('admin-map'), {
-                                    center: location,
-                                    zoom: 15
-                                });
-                            
-                                var marker = new google.maps.Marker({
-                                    position: location,
-                                    map: map
-                                });
-                            }
-                        </script>
-                        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBiVqW_ne4ZakK9UcS650j2DDQ4kQ87Z8U&callback=initMap&libraries=places" async defer></script>
                     </div>
+                    <h3>Click on the map to get coordinates</h3>
+                    <div id="map" style="width: 100%; height: 400px;"></div>
+                    <p id="coords"></p>
+                    <!-- <style>
+                     #map {
+                        height: 500px;
+                        width: 100%;
+                      }
+                    </style> -->
+
                     <div class="hidden" id="address_div">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="address">
                             Address:
@@ -236,60 +224,84 @@ if (!empty(session('cart'))) {
 <div class="py-10"></div>
 
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('.openRemoveModal').on('click', function(e) {
+    let map, marker;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Modal toggle logic
+        $('.openRemoveModal').on('click', function () {
             $('#remove-modal').removeClass('invisible');
         });
-        $('.closeRemoveModal').on('click', function(e) {
+        $('.closeRemoveModal').on('click', function () {
             $('#remove-modal').addClass('invisible');
         });
 
-        $('.openOrderModal').on('click', function(e) {
+        $('.openOrderModal').on('click', function () {
             $('#order-modal').removeClass('invisible');
         });
-        $('.closeOrderModal').on('click', function(e) {
+        $('.closeOrderModal').on('click', function () {
             $('#order-modal').addClass('invisible');
         });
 
-        $('.openPaymentModal').on('click', function(e) {
+        $('.openPaymentModal').on('click', function () {
             if (document.getElementById('deliveryType').checked) {
                 if (validateForm()) {
-                    $('#payment-modal').removeClass('invisible');
-                    setTimeout(function() {
-                        $('#payment-modal').addClass('invisible');
-                        showPaymentSuccess();
-                    }, 3000);
+                    // $('#payment-modal').removeClass('invisible');
+                    // setTimeout(function () {
+                    //     $('#payment-modal').addClass('invisible');
+                    //     showPaymentSuccess();
+                    // }, 3000);
                 }
             } else {
                 $('#payment-modal').removeClass('invisible');
-                setTimeout(function() {
+                setTimeout(function () {
                     $('#payment-modal').addClass('invisible');
                     showPaymentSuccess();
                 }, 3000);
             }
         });
 
-        function showPaymentSuccess() {
-            $('#payment-success-modal').removeClass('invisible');
-            setTimeout(function() {
-                $('#payment-success-modal').addClass('invisible');
-                submitOrderForm();
-            }, 2000);
+        // Initialize form address visibility
+        showAddressField();
+
+        // Form submission with coordinates
+        const orderForm = document.getElementById('orderForm');
+        if (orderForm) {
+            orderForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const address = document.getElementById('address').value;
+                const lat = marker?.getPosition().lat();
+                const lng = marker?.getPosition().lng();
+
+                fetch('/place-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        address: address,
+                        latitude: lat,
+                        longitude: lng
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    // Handle success
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
         }
-
-        function submitOrderForm() {
-            $('#place-order-form').submit();
-        }
-
-
     });
 
     function validateForm() {
-        let x = document.forms["place-order-form"]["address"].value;
-        const address = document.querySelector('#addresserr');
-        if (x == "") {
-            console.log(address);
-            address.innerHTML = "Delivery address cannot be empty"
+        const x = document.forms["place-order-form"]["address"].value;
+        const addressErr = document.querySelector('#addresserr');
+        if (x === "") {
+            addressErr.innerHTML = "Delivery address cannot be empty";
             return false;
         }
         return true;
@@ -300,113 +312,51 @@ if (!empty(session('cart'))) {
     }
 
     function showAddressField() {
-        if (document.getElementById('deliveryType').checked) {
-            $('#address_div').removeClass('hidden');
-            $('#address_field').prop('required', true);
-        } else {
-            $('#address_div').addClass('hidden');
-            $('#address_field').prop('required', false);
-        }
+        const delivery = document.getElementById('deliveryType').checked;
+        $('#address_div').toggleClass('hidden', !delivery);
+        $('#address_field').prop('required', delivery);
     }
 
     function setAddress() {
-
         document.getElementById('address').defaultValue = 'abc';
     }
-</script>
-<script>
-    var map, marker, geocoder, autocomplete;
-    
+
+    function showPaymentSuccess() {
+        $('#payment-success-modal').removeClass('invisible');
+        setTimeout(function () {
+            $('#payment-success-modal').addClass('invisible');
+            submitOrderForm();
+        }, 2000);
+    }
+
+    function submitOrderForm() {
+        $('#place-order-form').submit();
+    }
+
+    // Google Maps initialization
     function initMap() {
-        // Create a new map centered on a default location (e.g., your business location)
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: { lat: 37.7749, lng: -122.4194 },  // Set your default coordinates
-            zoom: 13
+        const initialPosition = { lat: 23.8103, lng: 90.4125 };
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 10,
+            center: initialPosition,
         });
 
-        // Create a marker to show the selected location
         marker = new google.maps.Marker({
+            position: initialPosition,
             map: map,
             draggable: true,
         });
 
-        // Enable the Google Places Autocomplete API
-        autocomplete = new google.maps.places.Autocomplete(document.getElementById('address'));
-        
-        // Update marker position when user selects an address
-        autocomplete.addListener('place_changed', function() {
-            var place = autocomplete.getPlace();
-            if (place.geometry) {
-                marker.setPosition(place.geometry.location);
-                map.setCenter(place.geometry.location);
-            }
-        });
-
-        // Add click event to set marker position on map click
-        map.addListener('click', function(e) {
-            marker.setPosition(e.latLng);
-            geocodeLatLng(e.latLng);
-        });
-
-        // Create a geocoder for converting lat/lng into a readable address
-        geocoder = new google.maps.Geocoder();
-    }
-
-    // Function to convert Lat/Lng into an address
-    function geocodeLatLng(latLng) {
-        geocoder.geocode({ location: latLng }, function(results, status) {
-            if (status === 'OK') {
-                if (results[0]) {
-                    document.getElementById('address').value = results[0].formatted_address;
-                } else {
-                    window.alert('No address found');
-                }
-            } else {
-                window.alert('Geocoder failed due to: ' + status);
-            }
+        map.addListener("click", (event) => {
+            const lat = event.latLng.lat();
+            const lng = event.latLng.lng();
+            marker.setPosition({ lat, lng });
+            document.getElementById("coords").innerText = `Latitude: ${lat}, Longitude: ${lng}`;
         });
     }
-</script>
-<script>
-    // On form submission, send the address to the server
-    document.getElementById('orderForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent default form submission
 
-        var address = document.getElementById('address').value;
-        var lat = marker.getPosition().lat();
-        var lng = marker.getPosition().lng();
-
-        // Use AJAX to send the data to the server
-        fetch('/place-order', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'  // Add CSRF token for security
-            },
-            body: JSON.stringify({
-                address: address,
-                latitude: lat,
-                longitude: lng,
-                // Add any other order data here
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
-            // Handle success (e.g., show success message)
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    });
+    window.onload = initMap;
 </script>
-<script>
-    function showAddressField() {
-        let delivery = document.getElementById('deliveryType').checked;
-        document.getElementById('address_div').classList.toggle('hidden', !delivery);
-    }
 
-    window.onload = showAddressField; // ensure it reflects initial state
-</script>
 
 @endsection

@@ -23,6 +23,8 @@
 
     <!-- Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBiVqW_ne4ZakK9UcS650j2DDQ4kQ87Z8U"></script>
 </head>
 
 <body>
